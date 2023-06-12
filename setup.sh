@@ -44,13 +44,23 @@ fi
 echo ""
 if ! sudo systemctl is-active --quiet docker; then
     echo "Iniciando o serviço do Docker. Isso pode levar alguns segundos..."
+    # Tempo de espera necessário para poder inicar serviço do docker
     sleep 60
     sudo systemctl start docker
 fi
 
-# Subindo o portainer CE
-docker run -d -p 9000:9000 --name portainer --restart always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
+# Verificar se o container Portainer já existe
+if docker inspect portainer &>/dev/null; then
+    echo "Container Portainer já existe. Pulando a criação do Portainer."
+elif docker ps --format "{{.Ports}}" | grep -q ":9000->"; then
+    echo "Já existe um container usando a porta 9000. Pulando a criação do container Portainer."
+else
+    # Subindo o container Portainer CE
+    echo "Criando o container Portainer..."
+    docker run -d -p 9000:9000 --name portainer --restart always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
+fi
 
+fi
 # Subir os containers
 echo ""
 echo "Subindo os containers..."
