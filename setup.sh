@@ -2,9 +2,6 @@
 
 echo "Iniciando o setup do ambiente..."
 
-# Atualizando os pacotes
-apt-get update -y
-
 # Função para verificar a instalação de uma dependência
 check_dependency() {
     if ! command -v "$1" &>/dev/null; then
@@ -18,6 +15,9 @@ if ! check_dependency "docker"; then
     echo "Docker não encontrado."
     read -p "Deseja instalar o Docker? (y/n): " install_docker
     if [ "$install_docker" = "y" ]; then
+        # Atualizando os pacotes
+        apt-get update -y
+
         curl -fsSL https://get.docker.com | bash
     else
         echo "Docker não instalado. Encerrando o setup."
@@ -42,9 +42,10 @@ fi
 
 # Inicializar o docker
 echo ""
-echo "Inicializando o docker. Isso pode demorar alguns segundos..."
-sleep 15
-systemctl start docker
+if ! sudo systemctl is-active --quiet docker; then
+    echo "Iniciando o serviço do Docker..."
+    sudo systemctl start docker
+fi
 
 # Subindo o portainer CE
 docker run -d -p 9000:9000 --name portainer --restart always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
@@ -72,7 +73,7 @@ cp backend/.env.example backend/.env
 # Executar o comando "php artisan key:generate" no container backend
 echo ""
 echo "Gerando a chave do Laravel..."
-docker compose exec backend php artisan cache:clear 
+docker compose exec backend php artisan cache:clear
 docker compose exec backend chmod -R 775 storage/
 docker compose exec backend composer dump-autoload
 chmod 664 backend/.env
