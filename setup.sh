@@ -44,7 +44,7 @@ fi
 echo ""
 if ! sudo systemctl is-active --quiet docker; then
     echo "Iniciando o serviço do Docker. Isso pode levar alguns segundos..."
-    sleep 30
+    sleep 60
     sudo systemctl start docker
 fi
 
