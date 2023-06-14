@@ -1,9 +1,10 @@
 FROM php:8.1-fpm
 
+ENV PHP_MEMORY_LIMIT=128M
+
 # set your user name, ex: user=bernardo
 ARG user=scs
 ARG uid=1000
-
 
 # Install system dependencies
 RUN apt-get update \
